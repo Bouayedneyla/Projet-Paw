@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>TP1 - Attendance Table</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        text-align: center;
+      }
+      th, td {
+        border: 1px solid black;
+        padding: 6px;
+      }
+      th {
+        background-color: #f0f0f0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Student Attendance Table</h2>
+
+    <table border="1" id="attendanceTable">
+      <tr>
+        <th rowspan="2">Student ID</th>
+        <th rowspan="2">Last Name</th>
+        <th rowspan="2">First Name</th>
+        <th rowspan="2">Course</th>
+        <th colspan="6">Session Attendance</th>
+        <th colspan="6">Participation</th>
+        <th rowspan="2">Absences</th>
+        <th rowspan="2">Message</th>
+      </tr>
+
+      <tr>
+        <th>Session 1</th>
+        <th>Session 2</th>
+        <th>Session 3</th>
+        <th>Session 4</th>
+        <th>Session 5</th>
+        <th>Session 6</th>
+        <th>P1</th>
+        <th>P2</th>
+        <th>P3</th>
+        <th>P4</th>
+        <th>P5</th>
+        <th>P6</th>
+      </tr>
+
+     
+      <tr>
+        <td>001</td>
+        <td>A</td>
+        <td>S</td>
+        <td>Web Development</td>
+
+       
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+
+       
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+
+        
+        <td class="absence-count">0</td>
+        <td><input type="text" placeholder="Enter message"></td>
+      </tr>
+
+      
+      <tr>
+        <td>002</td>
+        <td>Y</td>
+        <td>A</td>
+        <td>Database Systems</td>
+
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+
+        <td class="absence-count">0</td>
+        <td><input type="text" placeholder="Enter message"></td>
+      </tr>
+
+     
+      <tr>
+        <td>003</td>
+        <td>H</td>
+        <td>R</td>
+        <td>Networking</td>
+
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+        <td><input type="checkbox" class="attendance"></td>
+
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+        <td><input type="checkbox"></td>
+
+        <td class="absence-count">0</td>
+        <td><input type="text" placeholder="Enter message"></td>
+      </tr>
+    </table>
+
+
+    -//script
+    <script>
+     
+      function updateAbsences() {
+        const rows = document.querySelectorAll("#attendanceTable tr");
+        rows.forEach((row) => {
+          const checkboxes = row.querySelectorAll(".attendance");
+          const absenceCell = row.querySelector(".absence-count");
+
+          if (checkboxes.length > 0 && absenceCell) {
+            let absences = 0;
+            checkboxes.forEach((cb) => {
+              if (!cb.checked) absences++;
+            });
+            absenceCell.textContent = absences;
+          }
+        });
+      }
+
+      
+      document.querySelectorAll(".attendance").forEach((checkbox) => {
+        checkbox.addEventListener("change", updateAbsences);
+      });
+    </script>
+  </body>
+</html>
