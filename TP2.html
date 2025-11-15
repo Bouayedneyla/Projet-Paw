@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .error {
+      color: red;
+      font-size: 12px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      width: 80%;
+      margin: 30px auto;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      text-align: center;
+      padding: 10px;
+    }
+
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    #report {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    canvas {
+      margin-top: 20px;
+    }
+
+    #confirmation {
+      color: green;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Attendance Management System</h1>
+
+  <!-- Add Student Form -->
+  <form id="studentForm">
+    <label>Student ID:</label>
+    <input type="text" id="studentId" />
+    <span class="error" id="idError"></span>
+
+    <label>First Name:</label>
+    <input type="text" id="firstName" />
+    <span class="error" id="firstNameError"></span>
+
+    <label>Last Name:</label>
+    <input type="text" id="lastName" />
+    <span class="error" id="lastNameError"></span>
+
+    <label>Email:</label>
+    <input type="text" id="email" />
+    <span class="error" id="emailError"></span>
+
+    <button type="submit">Add Student</button>
+  </form>
+
+  <p id="confirmation"></p>
+
+  <!-- Attendance Table -->
+  <table id="attendanceTable">
+    <thead>
+      <tr>
+        <th>Student ID</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Present</th>
+        <th>Participated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>232331783401</td>
+        <td>neyla</td>
+        <td>bouayed</td>
+        <td>neyla@gmail.com</td>
+        <td><input type="checkbox" class="present"></td>
+        <td><input type="checkbox" class="participated"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="text-align:center;">
+    <button id="showReport">Show Report</button>
+  </div>
+
+  <!-- Report Section -->
+  <div id="report">
+    <h3>Attendance Report</h3>
+    <p id="totalStudents"></p>
+    <p id="presentStudents"></p>
+    <p id="participatedStudents"></p>
+    <canvas id="reportChart" width="300" height="200"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const form = document.getElementById("studentForm");
+    const table = document.getElementById("attendanceTable").getElementsByTagName('tbody')[0];
+    const confirmation = document.getElementById("confirmation");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const id = document.getElementById("studentId").value.trim();
+      const first = document.getElementById("firstName").value.trim();
+      const last = document.getElementById("lastName").value.trim();
+      const email = document.getElementById("email").value.trim();
+
+      document.getElementById("idError").textContent = "";
+      document.getElementById("firstNameError").textContent = "";
+      document.getElementById("lastNameError").textContent = "";
+      document.getElementById("emailError").textContent = "";
+      confirmation.textContent = "";
+
+      let valid = true;
+
+      if (id === "" || !/^[0-9]+$/.test(id)) {
+        document.getElementById("idError").textContent = "Enter a valid numeric ID.";
+        valid = false;
+      }
+      if (!/^[A-Za-z]+$/.test(first)) {
+        document.getElementById("firstNameError").textContent = "First name must contain only letters.";
+        valid = false;
+      }
+      if (!/^[A-Za-z]+$/.test(last)) {
+        document.getElementById("lastNameError").textContent = "Last name must contain only letters.";
+        valid = false;
+      }
+      if (!/^[^ ]+@[^ ]+\.[a-z]{2,3}$/.test(email)) {
+        document.getElementById("emailError").textContent = "Enter a valid email.";
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const newRow = table.insertRow();
+      newRow.innerHTML = `
+        <td>${id}</td>
+        <td>${first}</td>
+        <td>${last}</td>
+        <td>${email}</td>
+        <td><input type="checkbox" class="present"></td>
+        <td><input type="checkbox" class="participated"></td>
+      `;
+
+      confirmation.textContent = "✅ Student successfully added!";
+      form.reset();
+    });
+
+    document.getElementById("showReport").addEventListener("click", function() {
+      const rows = table.getElementsByTagName("tr");
+      let total = rows.length;
+      let presentCount = 0;
+      let participatedCount = 0;
+
+      for (let row of rows) {
+        if (row.querySelector(".present")?.checked) presentCount++;
+        if (row.querySelector(".participated")?.checked) participatedCount++;
+      }
+
+      document.getElementById("totalStudents").textContent = "Total Students: " + total;
+      document.getElementById("presentStudents").textContent = "Present: " + presentCount;
+      document.getElementById("participatedStudents").textContent = "Participated: " + participatedCount;
+
+      const ctx = document.getElementById('reportChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Total', 'Present', 'Participated'],
+          datasets: [{
+            label: 'Students',
+            data: [total, presentCount, participatedCount],
+            backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1, // incrément de 1
+                precision: 0, // pas de chiffres après la virgule
+                callback: function(value) {
+                  if (value <= 10) return value; // n’affiche que 1 à 10
+                }
+              },
+              suggestedMax: 10
+            }
+          }
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
