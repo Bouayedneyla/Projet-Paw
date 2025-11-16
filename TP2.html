@@ -1,94 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Attendance Management</title>
+  <meta charset="UTF-8" />
+  <title>Attendance Management - Final</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background-color: #f9f9f9;
+    :root{
+      --header-bg:#15448b;
+      --header-color:#fff;
+      --green-row:#d4edda;
+      --yellow-row:#fff3cd;
+      --red-row:#f8d7da;
+      --card-bg:#ffffff;
+    }
+    body{
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 24px;
+      background:#f2f5f3;
+      color:#222;
+    }
+    h1{
+      text-align:center;
+      font-size:36px;
+      margin-bottom:12px;
+      color:#15448b;
     }
 
-    h1 {
-      text-align: center;
-      color: #333;
+    /* Form */
+    form{
+      max-width:760px;
+      margin:0 auto 18px;
+      background:var(--card-bg);
+      padding:14px;
+      border-radius:8px;
+      box-shadow:0 4px 18px rgba(0,0,0,0.08);
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-end;
     }
-
-    form {
-      background-color: #fff;
-      padding: 20px;
-      margin: 20px auto;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 400px;
+    form label{ display:block; font-size:13px; color:#333; }
+    .form-group{ display:flex; flex-direction:column; gap:6px; min-width:160px; }
+    input[type="text"], input[type="email"]{
+      padding:8px 10px; border-radius:6px; border:1px solid #cfcfcf;
+      font-size:14px;
     }
+    .error{ color:#c0392b; font-size:12px; min-height:16px; }
 
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
+    button{ padding:10px 14px; border-radius:8px; border:none; background:#15448b; color:#fff; cursor:pointer; font-weight:600; }
+    button:hover{ background:#15448b; }
+
+    /* Table */
+    .table-wrap{ max-width:1200px; margin:18px auto; background:var(--card-bg); border-radius:8px; box-shadow:0 6px 22px rgba(0,0,0,0.08); overflow:auto; }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1100px;
     }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+    th, td{
+      padding:10px 12px; border:1px solid #e0e0e0; text-align:center;
+      vertical-align:middle; font-size:14px;
     }
-
-    .error {
-      color: red;
-      font-size: 12px;
+    thead th{
+      background:var(--header-bg); color:var(--header-color); font-weight:700;
     }
+    /* classes for colored rows */
+    tr.row-green td{ background:var(--green-row); }
+    tr.row-yellow td{ background:var(--yellow-row); }
+    tr.row-red td{ background:var(--red-row); }
 
-    button {
-      margin-top: 15px;
-      padding: 10px 15px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    tr:hover td{ box-shadow: inset 0 0 8px rgba(0,0,0,0.02); }
+
+    .student-name{ font-weight:700; color:#1b2b21; cursor:pointer; text-align:left; padding-left:12px; }
+    .message-input{ width:100%; padding:6px 8px; border-radius:6px; border:1px solid #cfcfcf; }
+
+    /* Report */
+    #controls{ text-align:center; margin:14px 0; }
+    #report{
+      max-width:1200px; margin:18px auto; background:var(--card-bg); padding:18px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06);
     }
+    .stat-cards{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:12px; }
+    .card{ padding:12px 18px; border-radius:8px; font-weight:700; color:#fff; min-width:150px; text-align:center; }
+    .card.total{ background:#15448b; }
+    .card.present{ background:#1c7fa7; }
+    .card.part{ background:#77d1e6; color:#333; }
 
-    button:hover {
-      background-color: #45a049;
-    }
+    /* Chart canvas size */
+    #chart-container{ width:100%; height:420px; position:relative; }
 
-    table {
-      width: 80%;
-      margin: 30px auto;
-      border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      text-align: center;
-      padding: 10px;
-    }
-
-    th {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    #report {
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    canvas {
-      margin-top: 20px;
-    }
-
-    #confirmation {
-      color: green;
-      text-align: center;
-      margin-top: 10px;
+    /* Responsive */
+    @media (max-width:900px){
+      h1{ font-size:28px; }
+      form{ gap:8px; }
+      .student-name{ font-size:13px; }
+      th, td{ padding:8px; font-size:13px; }
     }
   </style>
 </head>
@@ -97,163 +102,368 @@
   <h1>Attendance Management System</h1>
 
   <!-- Add Student Form -->
-  <form id="studentForm">
-    <label>Student ID:</label>
-    <input type="text" id="studentId" />
-    <span class="error" id="idError"></span>
+  <form id="studentForm" autocomplete="off">
+    <div class="form-group">
+      <label for="studentId">Student ID</label>
+      <input id="studentId" type="text" placeholder="numeric id" />
+      <div id="idError" class="error"></div>
+    </div>
 
-    <label>First Name:</label>
-    <input type="text" id="firstName" />
-    <span class="error" id="firstNameError"></span>
+    <div class="form-group">
+      <label for="lastName">Last Name</label>
+      <input id="lastName" type="text" placeholder="Last name" />
+      <div id="lastNameError" class="error"></div>
+    </div>
 
-    <label>Last Name:</label>
-    <input type="text" id="lastName" />
-    <span class="error" id="lastNameError"></span>
+    <div class="form-group">
+      <label for="firstName">First Name</label>
+      <input id="firstName" type="text" placeholder="First name" />
+      <div id="firstNameError" class="error"></div>
+    </div>
 
-    <label>Email:</label>
-    <input type="text" id="email" />
-    <span class="error" id="emailError"></span>
+    <div class="form-group">
+      <label for="course">Course</label>
+      <input id="course" type="text" placeholder="Course (ex: Web Dev)" />
+    </div>
 
-    <button type="submit">Add Student</button>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="email@example.com" />
+      <div id="emailError" class="error"></div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button type="submit">Add Student</button>
+    </div>
   </form>
 
-  <p id="confirmation"></p>
+  <p id="confirmation" style="text-align:center; color:green; font-weight:600;"></p>
 
-  <!-- Attendance Table -->
-  <table id="attendanceTable">
-    <thead>
-      <tr>
-        <th>Student ID</th>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Email</th>
-        <th>Present</th>
-        <th>Participated</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>232331783401</td>
-        <td>neyla</td>
-        <td>bouayed</td>
-        <td>neyla@gmail.com</td>
-        <td><input type="checkbox" class="present"></td>
-        <td><input type="checkbox" class="participated"></td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Table (structure from 2nd code: 6 sessions + 6 participations) -->
+  <div class="table-wrap">
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th rowspan="2">Student ID</th>
+          <th rowspan="2">Last Name</th>
+          <th rowspan="2">First Name</th>
+          <th rowspan="2">Course</th>
+          <th colspan="6">Session Attendance</th>
+          <th colspan="6">Participation</th>
+          <th rowspan="2">Absences</th>
+          <th rowspan="2">Message</th>
+        </tr>
+        <tr>
+          <th>S1</th><th>S2</th><th>S3</th><th>S4</th><th>S5</th><th>S6</th>
+          <th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- sample students (at least 3) -->
+        <tr>
+          <td>232331783401</td>
+          <td class="student-name">Bouayed</td>
+          <td>Neyla</td>
+          <td>Web Development</td>
 
-  <div style="text-align:center;">
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+
+          <td class="absences">0</td>
+          <td><input class="message-input" type="text" readonly></td>
+        </tr>
+
+        <tr>
+          <td>232331576603</td>
+          <td class="student-name">Meraou</td>
+          <td>Ryma</td>
+          <td>Database Systems</td>
+
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+
+          <td class="absences">0</td>
+          <td><input class="message-input" type="text" readonly></td>
+        </tr>
+
+        <tr>
+          <td>2323316</td>
+          <td class="student-name">Zerouati</td>
+          <td>Lyna</td>
+          <td>Networking</td>
+
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+          <td><input type="checkbox" class="attendance"></td>
+
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+          <td><input type="checkbox" class="participation"></td>
+
+          <td class="absences">0</td>
+          <td><input class="message-input" type="text" readonly></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="controls">
     <button id="showReport">Show Report</button>
   </div>
 
-  <!-- Report Section -->
+  <!-- Report -->
   <div id="report">
-    <h3>Attendance Report</h3>
-    <p id="totalStudents"></p>
-    <p id="presentStudents"></p>
-    <p id="participatedStudents"></p>
-    <canvas id="reportChart" width="300" height="200"></canvas>
+    <div class="stat-cards">
+      <div class="card total" id="totalStudents">Total: 0</div>
+      <div class="card present" id="presentStudents">Present: 0</div>
+      <div class="card part" id="participatedStudents">Participated: 0</div>
+    </div>
+    <div id="chart-container">
+      <canvas id="reportChart"></canvas>
+    </div>
   </div>
 
+  <!-- libs -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
-    const form = document.getElementById("studentForm");
-    const table = document.getElementById("attendanceTable").getElementsByTagName('tbody')[0];
-    const confirmation = document.getElementById("confirmation");
+    // Helpers
+    const tbody = document.querySelector('#attendanceTable tbody');
+    const totalSessions = 6, totalParticipations = 6;
 
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
+    // Update a single row: compute absences, participations, color, message
+    function updateRow($row){
+      const $att = $row.querySelectorAll('.attendance');
+      const $part = $row.querySelectorAll('.participation');
+      const attendedCount = Array.from($att).filter(cb => cb.checked).length;
+      const participationsCount = Array.from($part).filter(cb => cb.checked).length;
+      const absences = totalSessions - attendedCount;
 
-      const id = document.getElementById("studentId").value.trim();
-      const first = document.getElementById("firstName").value.trim();
-      const last = document.getElementById("lastName").value.trim();
-      const email = document.getElementById("email").value.trim();
+      // write absences
+      const absCell = $row.querySelector('.absences');
+      if(absCell) absCell.textContent = absences;
 
-      document.getElementById("idError").textContent = "";
-      document.getElementById("firstNameError").textContent = "";
-      document.getElementById("lastNameError").textContent = "";
-      document.getElementById("emailError").textContent = "";
-      confirmation.textContent = "";
+      // color row
+      $row.classList.remove('row-green','row-yellow','row-red');
+      if(absences < 3) $row.classList.add('row-green');
+      else if(absences < 5) $row.classList.add('row-yellow');
+      else $row.classList.add('row-red');
 
-      let valid = true;
-
-      if (id === "" || !/^[0-9]+$/.test(id)) {
-        document.getElementById("idError").textContent = "Enter a valid numeric ID.";
-        valid = false;
+      // message logic
+      const msgInput = $row.querySelector('.message-input');
+      let msg = '';
+      // conditions per spec
+      if(absences < 3 && participationsCount >= 4) {
+        msg = 'Good attendance – Excellent participation';
+      } else if(absences < 5) {
+        msg = 'Warning – attendance low – You need to participate more';
+      } else {
+        msg = 'Excluded – too many absences – You need to participate more';
       }
-      if (!/^[A-Za-z]+$/.test(first)) {
-        document.getElementById("firstNameError").textContent = "First name must contain only letters.";
-        valid = false;
-      }
-      if (!/^[A-Za-z]+$/.test(last)) {
-        document.getElementById("lastNameError").textContent = "Last name must contain only letters.";
-        valid = false;
-      }
-      if (!/^[^ ]+@[^ ]+\.[a-z]{2,3}$/.test(email)) {
-        document.getElementById("emailError").textContent = "Enter a valid email.";
-        valid = false;
-      }
+      if(msgInput) msgInput.value = msg;
+    }
 
-      if (!valid) return;
+    // Update all rows
+    function updateAllRows(){
+      document.querySelectorAll('#attendanceTable tbody tr').forEach(row => updateRow(row));
+    }
 
-      const newRow = table.insertRow();
-      newRow.innerHTML = `
-        <td>${id}</td>
-        <td>${first}</td>
-        <td>${last}</td>
-        <td>${email}</td>
-        <td><input type="checkbox" class="present"></td>
-        <td><input type="checkbox" class="participated"></td>
-      `;
-
-      confirmation.textContent = "✅ Student successfully added!";
-      form.reset();
+    // Attach change listeners (delegated)
+    document.addEventListener('change', function(e){
+      if(e.target && (e.target.matches('.attendance') || e.target.matches('.participation'))){
+        // find closest tr
+        const tr = e.target.closest('tr');
+        if(tr) updateRow(tr);
+      }
     });
 
-    document.getElementById("showReport").addEventListener("click", function() {
-      const rows = table.getElementsByTagName("tr");
-      let total = rows.length;
-      let presentCount = 0;
-      let participatedCount = 0;
+    // initial update
+    updateAllRows();
 
-      for (let row of rows) {
-        if (row.querySelector(".present")?.checked) presentCount++;
-        if (row.querySelector(".participated")?.checked) participatedCount++;
+  // click on student name (last name column) shows details
+    document.querySelector('#attendanceTable tbody').addEventListener('click', function(e){
+      const el = e.target;
+      if(el.classList.contains('student-name' )){
+        const tr = el.closest('tr');
+        const last = el.textContent.trim();
+        const first = tr.cells[2].textContent.trim();
+        const abs = tr.querySelector('.absences').textContent.trim();
+        alert('Student: ' + first + ' ' + last + '\nAbsences: ' + abs);
       }
+    });
 
-      document.getElementById("totalStudents").textContent = "Total Students: " + total;
-      document.getElementById("presentStudents").textContent = "Present: " + presentCount;
-      document.getElementById("participatedStudents").textContent = "Participated: " + participatedCount;
 
+    // Form: add student row
+    const form = document.getElementById('studentForm');
+    const confirmation = document.getElementById('confirmation');
+
+    form.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      // reset errors
+      document.getElementById('idError').textContent = '';
+      document.getElementById('firstNameError').textContent = '';
+      document.getElementById('lastNameError').textContent = '';
+      document.getElementById('emailError').textContent = '';
+      confirmation.textContent = '';
+
+      const id = document.getElementById('studentId').value.trim();
+      const last = document.getElementById('lastName').value.trim();
+      const first = document.getElementById('firstName').value.trim();
+      const course = document.getElementById('course').value.trim();
+      const email = document.getElementById('email').value.trim();
+
+      let ok = true;
+      if(!/^[0-9]+$/.test(id)){ document.getElementById('idError').textContent = 'Enter a numeric ID.'; ok=false; }
+      if(!/^[A-Za-zÀ-ÖØ-öø-ÿ\s-]+$/.test(first) || first.length===0){ document.getElementById('firstNameError').textContent='Invalid first name.'; ok=false; }
+      if(!/^[A-Za-zÀ-ÖØ-öø-ÿ\s-]+$/.test(last) || last.length===0){ document.getElementById('lastNameError').textContent='Invalid last name.'; ok=false; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ document.getElementById('emailError').textContent='Invalid email.'; ok=false; }
+
+      if(!ok) return;
+
+      // build row html with 6 attendance and 6 participation checkboxes
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td class="student-name">${last}</td>
+        <td>${first}</td>
+        <td>${course || ''}</td>
+        ${Array.from({length:6}).map(()=>'<td><input type="checkbox" class="attendance"></td>').join('')}
+        ${Array.from({length:6}).map(()=>'<td><input type="checkbox" class="participation"></td>').join('')}
+        <td class="absences">0</td>
+        <td><input class="message-input" type="text" readonly></td>
+      `;
+      tbody.appendChild(tr);
+
+      // update row values immediately
+      updateRow(tr);
+
+      confirmation.textContent =  'Student successfully added';
+      form.reset();
+      setTimeout(()=>confirmation.textContent='',1800);
+    });
+
+    // Show Report -> compute stats and draw chart
+    let chartInstance = null;
+    document.getElementById('showReport').addEventListener('click', function(){
+      updateAllRows();
+      const rows = Array.from(document.querySelectorAll('#attendanceTable tbody tr'));
+      const labels = [];
+      const attendanceCounts = [];
+      const participationCounts = [];
+      let presentStudents = 0;
+      let participatedStudents = 0;
+
+      rows.forEach(tr=>{
+        const first = tr.cells[2].textContent.trim();
+        const last = tr.cells[1].textContent.trim();
+        labels.push(first + ' ' + last);
+
+        const attended = Array.from(tr.querySelectorAll('.attendance')).filter(cb=>cb.checked).length;
+        const participated = Array.from(tr.querySelectorAll('.participation')).filter(cb=>cb.checked).length;
+
+        attendanceCounts.push(attended);
+        participationCounts.push(participated);
+
+        if(attended > 0) presentStudents++;
+        if(participated > 0) participatedStudents++;
+      });
+
+      document.getElementById('totalStudents').textContent = 'Total: ' + rows.length;
+      document.getElementById('presentStudents').textContent = 'Present: ' + presentStudents;
+      document.getElementById('participatedStudents').textContent = 'Participated: ' + participatedStudents;
+
+      // draw chart
       const ctx = document.getElementById('reportChart').getContext('2d');
-      new Chart(ctx, {
+      if(chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Total', 'Present', 'Participated'],
-          datasets: [{
-            label: 'Students',
-            data: [total, presentCount, participatedCount],
-            backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
-          }]
+          labels: labels,
+          datasets: [
+            { label: 'Attendance (count of sessions present)', data: attendanceCounts, backgroundColor: '#15448b' },
+            { label: 'Participation (count)', data: participationCounts, backgroundColor: '#77d1e6' }
+          ]
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { mode: 'index', intersect: false }
+          },
           scales: {
+            x: {
+              title: { display: true, text: 'Students' },
+              ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
+            },
             y: {
               beginAtZero: true,
-              ticks: {
-                stepSize: 1, // incrément de 1
-                precision: 0, // pas de chiffres après la virgule
-                callback: function(value) {
-                  if (value <= 10) return value; // n’affiche que 1 à 10
-                }
-              },
-              suggestedMax: 10
+              title: { display: true, text: 'Number of sessions / participations' },
+              ticks: { stepSize: 1, precision: 0 }
             }
           }
         }
       });
     });
+
+    // initialize: set some default checked values to demonstrate
+    (function demoInit(){
+      // mark some sample checkboxes for demo (optional)
+      const rows = document.querySelectorAll('#attendanceTable tbody tr');
+      if(rows.length){
+        // first student: 4 present , 4 participate
+        const r0 = rows[0];
+        r0.querySelectorAll('.attendance')[0].checked = true;
+        r0.querySelectorAll('.attendance')[1].checked = true;
+        r0.querySelectorAll('.attendance')[2].checked = true;
+        r0.querySelectorAll('.attendance')[3].checked = true;
+        r0.querySelectorAll('.participation')[0].checked = true;
+        r0.querySelectorAll('.participation')[1].checked = true;
+        r0.querySelectorAll('.participation')[2].checked = true;
+        r0.querySelectorAll('.participation')[3].checked = true;
+
+        // second student: 2 present
+        const r1 = rows[1];
+        r1.querySelectorAll('.attendance')[2].checked = true;
+        r1.querySelectorAll('.attendance')[3].checked = true;
+        r1.querySelectorAll('.participation')[1].checked = true;
+
+        // third student: none present (all absent)
+        // leave defaults
+      }
+      updateAllRows();
+    })();
+
   </script>
 
 </body>
