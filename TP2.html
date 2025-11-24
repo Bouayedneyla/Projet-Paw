@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <title>Attendance Management - Final</title>
@@ -12,6 +12,8 @@
       --yellow-row:#fff3cd;
       --red-row:#f8d7da;
       --card-bg:#ffffff;
+      --excellent-bg:#b6f7b0;
+      --hover-bg: rgba(21,68,139,0.06);
     }
     body{
       font-family: "Segoe UI", Roboto, Arial, sans-serif;
@@ -23,7 +25,7 @@
       text-align:center;
       font-size:36px;
       margin-bottom:12px;
-      color:#15448b;
+      color:var(--header-bg);
     }
 
     /* Form */
@@ -47,8 +49,8 @@
     }
     .error{ color:#c0392b; font-size:12px; min-height:16px; }
 
-    button{ padding:10px 14px; border-radius:8px; border:none; background:#15448b; color:#fff; cursor:pointer; font-weight:600; }
-    button:hover{ background:#15448b; }
+    button{ padding:10px 14px; border-radius:8px; border:none; background:var(--header-bg); color:var(--header-color); cursor:pointer; font-weight:600; }
+    button:hover{ background:#77d1e6; }
 
     /* Table */
     .table-wrap{ max-width:1200px; margin:18px auto; background:var(--card-bg); border-radius:8px; box-shadow:0 6px 22px rgba(0,0,0,0.08); overflow:auto; }
@@ -64,10 +66,15 @@
     thead th{
       background:var(--header-bg); color:var(--header-color); font-weight:700;
     }
-    /* classes for colored rows */
     tr.row-green td{ background:var(--green-row); }
     tr.row-yellow td{ background:var(--yellow-row); }
     tr.row-red td{ background:var(--red-row); }
+
+    /* hover highlight class (added/removed via jQuery) */
+    tr.hover-highlight td{
+      background: var(--hover-bg) !important;
+      transition: background-color 0.18s ease;
+    }
 
     tr:hover td{ box-shadow: inset 0 0 8px rgba(0,0,0,0.02); }
 
@@ -81,14 +88,18 @@
     }
     .stat-cards{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:12px; }
     .card{ padding:12px 18px; border-radius:8px; font-weight:700; color:#fff; min-width:150px; text-align:center; }
-    .card.total{ background:#15448b; }
+    .card.total{ background:var(--header-bg); }
     .card.present{ background:#1c7fa7; }
     .card.part{ background:#77d1e6; color:#333; }
 
-    /* Chart canvas size */
     #chart-container{ width:100%; height:420px; position:relative; }
 
-    /* Responsive */
+    /* Excellent highlight style (added by script) */
+    .excellent{
+      background-color: var(--excellent-bg) !important;
+      transition: background-color 0.6s ease-in-out;
+    }
+
     @media (max-width:900px){
       h1{ font-size:28px; }
       form{ gap:8px; }
@@ -139,7 +150,6 @@
 
   <p id="confirmation" style="text-align:center; color:green; font-weight:600;"></p>
 
-  <!-- Table (structure from 2nd code: 6 sessions + 6 participations) -->
   <div class="table-wrap">
     <table id="attendanceTable">
       <thead>
@@ -159,13 +169,12 @@
         </tr>
       </thead>
       <tbody>
-        <!-- sample students (at least 3) -->
+        <!-- sample students -->
         <tr>
           <td>232331783401</td>
           <td class="student-name">Bouayed</td>
           <td>Neyla</td>
           <td>Web Development</td>
-
           <td><input type="checkbox" class="attendance"></td>
           <td><input type="checkbox" class="attendance"></td>
           <td><input type="checkbox" class="attendance"></td>
@@ -189,7 +198,6 @@
           <td class="student-name">Meraou</td>
           <td>Ryma</td>
           <td>Database Systems</td>
-
           <td><input type="checkbox" class="attendance"></td>
           <td><input type="checkbox" class="attendance"></td>
           <td><input type="checkbox" class="attendance"></td>
@@ -235,8 +243,14 @@
     </table>
   </div>
 
-  <div id="controls">
+  <div id="controls" style="text-align:center; margin-top:8px;">
     <button id="showReport">Show Report</button>
+  </div>
+
+  <!-- NEW BUTTONS -->
+  <div style="text-align:center; margin-top:12px;">
+    <button id="highlightBtn">Highlight Excellent Students</button>
+    <button id="resetColorsBtn">Reset Colors</button>
   </div>
 
   <!-- Report -->
@@ -256,32 +270,30 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    // Helpers
+    // Helpers and constants
     const tbody = document.querySelector('#attendanceTable tbody');
-    const totalSessions = 6, totalParticipations = 6;
+    const totalSessions = 6;
 
     // Update a single row: compute absences, participations, color, message
-    function updateRow($row){
-      const $att = $row.querySelectorAll('.attendance');
-      const $part = $row.querySelectorAll('.participation');
-      const attendedCount = Array.from($att).filter(cb => cb.checked).length;
-      const participationsCount = Array.from($part).filter(cb => cb.checked).length;
+    function updateRow(row){
+      const att = row.querySelectorAll('.attendance');
+      const part = row.querySelectorAll('.participation');
+      const attendedCount = Array.from(att).filter(cb => cb.checked).length;
+      const participationsCount = Array.from(part).filter(cb => cb.checked).length;
       const absences = totalSessions - attendedCount;
 
-      // write absences
-      const absCell = $row.querySelector('.absences');
+      const absCell = row.querySelector('.absences');
       if(absCell) absCell.textContent = absences;
 
-      // color row
-      $row.classList.remove('row-green','row-yellow','row-red');
-      if(absences < 3) $row.classList.add('row-green');
-      else if(absences < 5) $row.classList.add('row-yellow');
-      else $row.classList.add('row-red');
+      // remove previous classes (preserve any 'excellent' class until reset)
+      row.classList.remove('row-green','row-yellow','row-red');
+      if(absences < 3) row.classList.add('row-green');
+      else if(absences < 5) row.classList.add('row-yellow');
+      else row.classList.add('row-red');
 
       // message logic
-      const msgInput = $row.querySelector('.message-input');
+      const msgInput = row.querySelector('.message-input');
       let msg = '';
-      // conditions per spec
       if(absences < 3 && participationsCount >= 4) {
         msg = 'Good attendance – Excellent participation';
       } else if(absences < 5) {
@@ -292,15 +304,16 @@
       if(msgInput) msgInput.value = msg;
     }
 
-    // Update all rows
     function updateAllRows(){
-      document.querySelectorAll('#attendanceTable tbody tr').forEach(row => updateRow(row));
+      document.querySelectorAll('#attendanceTable tbody tr').forEach(row => {
+        // ensure we don't override the 'excellent' highlight; row coloring via classes is applied
+        updateRow(row);
+      });
     }
 
-    // Attach change listeners (delegated)
+    // Delegated listener for attendance/participation toggles
     document.addEventListener('change', function(e){
       if(e.target && (e.target.matches('.attendance') || e.target.matches('.participation'))){
-        // find closest tr
         const tr = e.target.closest('tr');
         if(tr) updateRow(tr);
       }
@@ -309,20 +322,23 @@
     // initial update
     updateAllRows();
 
-  // click on student name (last name column) shows details
-    document.querySelector('#attendanceTable tbody').addEventListener('click', function(e){
-      const el = e.target;
-      if(el.classList.contains('student-name' )){
-        const tr = el.closest('tr');
-        const last = el.textContent.trim();
-        const first = tr.cells[2].textContent.trim();
-        const abs = tr.querySelector('.absences').textContent.trim();
-        alert('Student: ' + first + ' ' + last + '\nAbsences: ' + abs);
-      }
+    // Click on student name OR row -> show details
+    // We'll show on row click unless click was on an input
+    $('#attendanceTable tbody').on('click', 'tr', function(e){
+      // if clicked on an input inside the row, ignore
+      if(e.target.tagName.toLowerCase() === 'input') return;
+      const first = $(this).find('td').eq(2).text().trim();
+      const last = $(this).find('td').eq(1).text().trim();
+      const abs = $(this).find('.absences').text().trim();
+      alert('Student: ' + first + ' ' + last + '\nAbsences: ' + abs);
     });
 
+    // Prevent input clicks from triggering row click (safer)
+    $('#attendanceTable').on('click', 'input', function(e){
+      e.stopPropagation();
+    });
 
-    // Form: add student row
+    // Form: add student row with validation
     const form = document.getElementById('studentForm');
     const confirmation = document.getElementById('confirmation');
 
@@ -342,14 +358,14 @@
       const email = document.getElementById('email').value.trim();
 
       let ok = true;
-      if(!/^[0-9]+$/.test(id)){ document.getElementById('idError').textContent = 'Enter a numeric ID.'; ok=false; }
+      if(!/^[0-9]+$/.test(id)){ document.getElementById('idError').textContent='Enter a numeric ID.'; ok=false; }
       if(!/^[A-Za-zÀ-ÖØ-öø-ÿ\s-]+$/.test(first) || first.length===0){ document.getElementById('firstNameError').textContent='Invalid first name.'; ok=false; }
       if(!/^[A-Za-zÀ-ÖØ-öø-ÿ\s-]+$/.test(last) || last.length===0){ document.getElementById('lastNameError').textContent='Invalid last name.'; ok=false; }
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ document.getElementById('emailError').textContent='Invalid email.'; ok=false; }
 
       if(!ok) return;
 
-      // build row html with 6 attendance and 6 participation checkboxes
+      // create row with 6 attendance and 6 participation checkboxes
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${id}</td>
@@ -363,55 +379,57 @@
       `;
       tbody.appendChild(tr);
 
-      // update row values immediately
+      // update new row
       updateRow(tr);
 
-      confirmation.textContent =  'Student successfully added';
+      confirmation.textContent = 'Student successfully added';
       form.reset();
       setTimeout(()=>confirmation.textContent='',1800);
     });
 
-    // Show Report -> compute stats and draw chart
+    // Show Report -> per session (S1..S6)
     let chartInstance = null;
     document.getElementById('showReport').addEventListener('click', function(){
       updateAllRows();
       const rows = Array.from(document.querySelectorAll('#attendanceTable tbody tr'));
-      const labels = [];
-      const attendanceCounts = [];
-      const participationCounts = [];
+
+      const sessionLabels = ['S1','S2','S3','S4','S5','S6'];
+      const presencePerSession = [0,0,0,0,0,0];
+      const participationPerSession = [0,0,0,0,0,0];
+
       let presentStudents = 0;
       let participatedStudents = 0;
 
-      rows.forEach(tr=>{
-        const first = tr.cells[2].textContent.trim();
-        const last = tr.cells[1].textContent.trim();
-        labels.push(first + ' ' + last);
+      rows.forEach(tr => {
+        const att = Array.from(tr.querySelectorAll('.attendance'));
+        const part = Array.from(tr.querySelectorAll('.participation'));
 
-        const attended = Array.from(tr.querySelectorAll('.attendance')).filter(cb=>cb.checked).length;
-        const participated = Array.from(tr.querySelectorAll('.participation')).filter(cb=>cb.checked).length;
+        att.forEach((cb, idx) => {
+          if(cb.checked) presencePerSession[idx]++;
+        });
+        part.forEach((cb, idx) => {
+          if(cb.checked) participationPerSession[idx]++;
+        });
 
-        attendanceCounts.push(attended);
-        participationCounts.push(participated);
-
-        if(attended > 0) presentStudents++;
-        if(participated > 0) participatedStudents++;
+        if(att.some(cb => cb.checked)) presentStudents++;
+        if(part.some(cb => cb.checked)) participatedStudents++;
       });
 
       document.getElementById('totalStudents').textContent = 'Total: ' + rows.length;
       document.getElementById('presentStudents').textContent = 'Present: ' + presentStudents;
       document.getElementById('participatedStudents').textContent = 'Participated: ' + participatedStudents;
 
-      // draw chart
+      // draw chart per session
       const ctx = document.getElementById('reportChart').getContext('2d');
       if(chartInstance) chartInstance.destroy();
 
       chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labels,
+          labels: sessionLabels,
           datasets: [
-            { label: 'Attendance (count of sessions present)', data: attendanceCounts, backgroundColor: '#15448b' },
-            { label: 'Participation (count)', data: participationCounts, backgroundColor: '#77d1e6' }
+            { label: 'Presence', data: presencePerSession, backgroundColor: '#15448b' },
+            { label: 'Participation', data: participationPerSession, backgroundColor: '#77d1e6' }
           ]
         },
         options: {
@@ -423,22 +441,71 @@
           },
           scales: {
             x: {
-              title: { display: true, text: 'Students' },
-              ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
+              title: { display: true, text: 'Sessions' }
             },
             y: {
+              min: 0,
+              max: 10,
               beginAtZero: true,
-              title: { display: true, text: 'Number of sessions / participations' },
-              ticks: { stepSize: 1, precision: 0 }
+              title: { display: true, text: 'Number of students' },
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  // ensure only integer tick labels are shown
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
             }
           }
         }
       });
     });
 
-    // initialize: set some default checked values to demonstrate
+    // Highlight Excellent Students & Reset Colors (jQuery)
+    $(document).ready(function(){
+
+      // Hover highlight on row
+      $('#attendanceTable tbody').on('mouseenter', 'tr', function(){
+        $(this).addClass('hover-highlight');
+      });
+      $('#attendanceTable tbody').on('mouseleave', 'tr', function(){
+        $(this).removeClass('hover-highlight');
+      });
+
+      // Highlight excellent students (absences < 3)
+      $('#highlightBtn').click(function(){
+        $('#attendanceTable tbody tr').each(function(){
+          const presentCount = $(this).find('.attendance:checked').length;
+          const abs = totalSessions - presentCount;
+          if(abs < 3){
+            // animate then add class 'excellent'
+            $(this).fadeOut(140).fadeIn(140).addClass('excellent');
+          }
+        });
+      });
+
+      // Reset colors: remove 'excellent' and inline styles and reapply standard row coloring
+      $('#resetColorsBtn').click(function(){
+        $('#attendanceTable tbody tr').each(function(){
+          // remove highlight/excellent classes
+          $(this).removeClass('excellent hover-highlight');
+
+          // remove any inline background styles (defensive)
+          this.style.backgroundColor = '';
+          this.style.transition = '';
+
+          // also remove inline color on cells (defensive)
+          $(this).find('td').each(function(){ this.style.backgroundColor = ''; });
+
+        });
+
+        // Recompute row classes based on absences
+        updateAllRows();
+      });
+    });
+
+    // Demo initial sample data (optional)
     (function demoInit(){
-      // mark some sample checkboxes for demo (optional)
       const rows = document.querySelectorAll('#attendanceTable tbody tr');
       if(rows.length){
         // first student: 4 present , 4 participate
@@ -452,14 +519,11 @@
         r0.querySelectorAll('.participation')[2].checked = true;
         r0.querySelectorAll('.participation')[3].checked = true;
 
-        // second student: 2 present
+        // second student
         const r1 = rows[1];
         r1.querySelectorAll('.attendance')[2].checked = true;
         r1.querySelectorAll('.attendance')[3].checked = true;
         r1.querySelectorAll('.participation')[1].checked = true;
-
-        // third student: none present (all absent)
-        // leave defaults
       }
       updateAllRows();
     })();
@@ -468,3 +532,4 @@
 
 </body>
 </html>
+
